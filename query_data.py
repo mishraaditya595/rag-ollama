@@ -4,6 +4,7 @@ from langchain_community.vectorstores import Chroma
 from langchain.prompts import ChatPromptTemplate
 from langchain_community.llms.ollama import Ollama
 from get_embedding_function import get_embedding_function
+from request_answer import generate_content
 
 CHROMA_PATH = "chroma"
 
@@ -33,13 +34,15 @@ def query_rag(query_text: str):
     db = Chroma(persist_directory=CHROMA_PATH, embedding_function=embedding_function)
 
     # Search the DB.
-    results = db.similarity_search_with_score(query_text, k=15)
+    results = db.similarity_search_with_score(query_text, k=10)
 
     context_text = "\n\n---\n\n".join([doc.page_content for doc, _score in results])
     prompt_template = ChatPromptTemplate.from_template(PROMPT_TEMPLATE)
     prompt = prompt_template.format(context=context_text, question=query_text)
-    print(prompt)
-
+    #print(prompt)
+    gemini_response = generate_content(prompt)
+    text = gemini_response["candidates"][0]["content"]["parts"][0]["text"]
+    print(text)
     # model = Ollama(model="orca2")
     # response_text = model.invoke(prompt)
 
